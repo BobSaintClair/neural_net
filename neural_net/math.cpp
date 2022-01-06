@@ -68,7 +68,7 @@ namespace activation_functions
 	
 	Vector identity_der(const Vector& x)
 	{
-		return Vector{ std::vector<double>(x.size(), 1.0) };
+		return Vector{ x.size(), 1.0 };
 	}
 	
 	Vector sigmoid(const Vector& x)
@@ -76,7 +76,7 @@ namespace activation_functions
 		Vector f_x{ x.size() };
 		for (size_t i{ 0 }; i < x.size(); i++)
 		{
-			f_x.at(i) = sigmoid(x.getElement(i));
+			f_x[i] = sigmoid(x[i]);
 		}
 		return f_x;
 	}
@@ -86,7 +86,7 @@ namespace activation_functions
 		Vector f_x{ x.size() };
 		for (size_t i{ 0 }; i < x.size(); i++)
 		{
-			f_x.at(i) = sigmoid_der(x.getElement(i));
+			f_x[i] = sigmoid_der(x[i]);
 		}
 		return f_x;
 	}
@@ -96,7 +96,7 @@ namespace activation_functions
 		Vector f_x{ x.size() };
 		for (size_t i{ 0 }; i < x.size(); i++)
 		{
-			f_x.at(i) = tanh(x.getElement(i));
+			f_x[i] = tanh(x[i]);
 		}
 		return f_x;
 	}
@@ -106,7 +106,7 @@ namespace activation_functions
 		Vector f_x{ x.size() };
 		for (size_t i{ 0 }; i < x.size(); i++)
 		{
-			f_x.at(i) = tanh_der(x.getElement(i));
+			f_x[i] = tanh_der(x[i]);
 		}
 		return f_x;
 	}
@@ -116,7 +116,7 @@ namespace activation_functions
 		Vector f_x{ x.size() };
 		for (size_t i{ 0 }; i < x.size(); i++)
 		{
-			f_x.at(i) = relu(x.getElement(i));
+			f_x[i] = relu(x[i]);
 		}
 		return f_x;
 	}
@@ -126,7 +126,7 @@ namespace activation_functions
 		Vector f_x{ x.size() };
 		for (size_t i{ 0 }; i < x.size(); i++)
 		{
-			f_x.at(i) = relu_der(x.getElement(i));
+			f_x[i] = relu_der(x[i]);
 		}
 		return f_x;
 	}
@@ -136,7 +136,7 @@ namespace activation_functions
 		Vector f_x{ x.size() };
 		for (size_t i{ 0 }; i < x.size(); i++)
 		{
-			f_x.at(i) = softplus(x.getElement(i));
+			f_x[i] = softplus(x[i]);
 		}
 		return f_x;
 	}
@@ -146,7 +146,7 @@ namespace activation_functions
 		Vector f_x{ x.size() };
 		for (size_t i{ 0 }; i < x.size(); i++)
 		{
-			f_x.at(i) = softplus_der(x.getElement(i));
+			f_x[i] = softplus_der(x[i]);
 		}
 		return f_x;
 	}

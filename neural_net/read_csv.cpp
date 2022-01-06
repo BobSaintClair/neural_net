@@ -2,6 +2,8 @@
 #include <fstream>
 #include <stdexcept> // std::runtime_error
 #include <sstream> // std::stringstream
+#include <iostream>
+#include <iomanip> // for output manipulator std::setprecision()
 
 data_frame read_csv(std::string filename)
 {
@@ -46,7 +48,7 @@ data_frame read_csv(std::string filename)
         while (ss >> val)
         {
             // Add the current integer to the 'colIdx' column's values vector
-            result.at(colIdx).second.push_back(val);
+            result.at(colIdx).second.pushBack(val);
             // If the next token is a comma, ignore it and move on
             if (ss.peek() == ',') ss.ignore();
 
@@ -56,4 +58,27 @@ data_frame read_csv(std::string filename)
     }
 
     return result;
+}
+
+void print_data_frame(data_frame print_me)
+{
+    std::cout << std::setprecision(4);
+    std::cout << "Rows: " << print_me.at(0).second.size() << '\n';
+    std::cout << "Cols: " << print_me.size() << '\n';
+    for (size_t i{ 0 }; i < print_me.size(); i++)
+    {
+        std::cout << print_me.at(i).first << '\t';
+    }
+    std::cout << '\n';
+    size_t min{ (print_me.at(0).second.size() > n_rows_to_print) ? n_rows_to_print : print_me.at(0).second.size() };
+    for (size_t j{ 0 }; j < min; j++)
+    {
+        for (size_t i{ 0 }; i < print_me.size(); i++)
+        {
+            std::cout << print_me.at(i).second.at(j) << '\t';
+        }
+        std::cout << '\n';
+    }
+    std::cout << "..................................";
+    std::cout << '\n';
 }
