@@ -247,6 +247,32 @@ void Matrix::removeCol(const size_t col_idx)
     }
 }
 
+Vector Matrix::getRow(const size_t row_idx)
+{
+    if (row_idx >= m_nrow)
+        throw std::invalid_argument("Index exceeds dimensions!");
+    else if (m_nrow == 0)
+        throw std::invalid_argument("Matrix is empty!");
+
+    size_t idx_start{ row_idx * m_ncol };
+    return Vector{ std::vector<double>(m_data.begin() + idx_start, m_data.begin() + idx_start + m_ncol) };
+}
+
+Vector Matrix::getCol(const size_t col_idx)
+{
+    if (col_idx >= m_ncol)
+        throw std::invalid_argument("Index exceeds dimensions!");
+    else if (m_ncol == 0)
+        throw std::invalid_argument("Matrix is empty!");
+
+    std::vector<double> result(m_nrow);
+    for (size_t i{ 0 }; i < m_nrow; i++)
+    {
+        result[i] = m_data[i * m_ncol + col_idx];
+    }
+    return Vector{ result };
+}
+
 double& Matrix::at(const size_t row_idx, const size_t col_idx)
 {
     if (row_idx >= m_nrow || col_idx >= m_ncol)

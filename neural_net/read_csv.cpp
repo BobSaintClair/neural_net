@@ -5,7 +5,7 @@
 #include <iostream>
 #include <iomanip> // for output manipulator std::setprecision()
 
-data_frame read_csv(std::string filename)
+data_frame read_csv1(std::string filename)
 {
     data_frame result{};
 
@@ -48,7 +48,7 @@ data_frame read_csv(std::string filename)
         while (ss >> val)
         {
             // Add the current integer to the 'colIdx' column's values vector
-            result.at(colIdx).second.pushBack(val);
+            result.at(colIdx).second.push_back(val);
             // If the next token is a comma, ignore it and move on
             if (ss.peek() == ',') ss.ignore();
 
@@ -58,6 +58,55 @@ data_frame read_csv(std::string filename)
     }
 
     return result;
+}
+
+data_frame_unlabeled read_csv2(std::string filename)
+{
+    std::vector<double> y{};
+    std::vector<double> x{};
+
+    std::ifstream myFile{ filename };
+
+    if (!myFile.is_open())
+        throw std::runtime_error("Could not open file");
+
+    // Helper vars
+    std::string line{ "" };
+    std::string colname{ "" };
+    double val{ 0.0 };
+
+    size_t ncol{ 0 };
+    if (myFile.good())
+    {
+        std::getline(myFile, line);
+        std::stringstream ss{ line };
+
+        while (std::getline(ss, colname, ','))
+        {
+            ncol++;
+        }
+    }
+
+    size_t nrow{ 0 };
+    while (std::getline(myFile, line))
+    {
+        std::stringstream ss{ line };
+        int colIdx{ 0 };
+
+        while (ss >> val)
+        {
+            if (colIdx == 0)
+                y.push_back(val);
+            else
+                x.push_back(val);
+
+            if (ss.peek() == ',') ss.ignore();
+            colIdx++;
+        }
+        nrow++;
+    }
+
+    return std::pair{ y, Matrix{ nrow, ncol - 1, x } };
 }
 
 void print_data_frame(data_frame print_me)
