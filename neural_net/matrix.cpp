@@ -247,7 +247,7 @@ void Matrix::removeCol(const size_t col_idx)
     }
 }
 
-Vector Matrix::getRow(const size_t row_idx)
+Vector Matrix::getRow(const size_t row_idx) const
 {
     if (row_idx >= m_nrow)
         throw std::invalid_argument("Index exceeds dimensions!");
@@ -258,7 +258,7 @@ Vector Matrix::getRow(const size_t row_idx)
     return Vector{ std::vector<double>(m_data.begin() + idx_start, m_data.begin() + idx_start + m_ncol) };
 }
 
-Vector Matrix::getCol(const size_t col_idx)
+Vector Matrix::getCol(const size_t col_idx) const
 {
     if (col_idx >= m_ncol)
         throw std::invalid_argument("Index exceeds dimensions!");

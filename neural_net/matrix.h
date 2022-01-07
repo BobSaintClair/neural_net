@@ -49,8 +49,8 @@ public:
     void clear();
     void removeRow(const size_t row_idx);
     void removeCol(const size_t col_idx);
-    Vector getRow(const size_t row_idx);
-    Vector getCol(const size_t col_idx);
+    Vector getRow(const size_t row_idx) const;
+    Vector getCol(const size_t col_idx) const;
     double& at(const size_t row_idx, const size_t col_idx);
     double& at(const size_t idx);
     const double& at(const size_t row_idx, const size_t col_idx) const;

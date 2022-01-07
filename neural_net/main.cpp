@@ -3,12 +3,6 @@
 #include "math.h"
 #include "read_csv.h"
 #include "timer.h"
-#include <iostream>
-
-double fun_input(Vector weights, Vector x, double bias)
-{
-	return (weights.dotProduct(x) + bias);
-}
 
 int main()
 {
@@ -28,7 +22,10 @@ int main()
 	{
 		std::cout << y[i] << '\t' << y_hat[i] << '\n';
 	}
-	*/	
+	*/
+
+
+	/*
 	int batch_size{ 10000 };
 
 	RNG rng{};
@@ -49,14 +46,12 @@ int main()
 	double bias{ rng.generateFromNormal(0.0, 0.8) };
 
 
-
-
 	weights.print();
 	for (int k = 0; k < 400; k++)
 	{
 		Vector weights_grad{ std::vector<double>(indep_vars) };
 		double bias_grad{ 0.0 };
-		std::vector<int> idx = rng.generateNDistinctFromUniform(0, nrows - 1, batch_size);
+		std::vector<int> idx = rng.generateNDistinctFromUniform(0, static_cast<int>(nrows) - 1, batch_size);
 		
 		for (int i{ 0 }; i < indep_vars; i++)
 		{
@@ -80,6 +75,6 @@ int main()
 	}
 	weights.print();
 	std::cout << bias;
-	
+	*/
 	return 0;
 }
