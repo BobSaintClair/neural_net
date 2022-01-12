@@ -5,8 +5,9 @@
 #include "matrix.h"
 
 using data_frame = std::vector<std::pair<std::string, std::vector<double>>>;
-using data_frame_unlabeled = std::pair<Vector, Matrix>;
+using data_frame_unlabeled = std::pair<Matrix, Matrix>;
 constexpr int n_rows_to_print{ 6 };
+constexpr size_t dep_vars{ 1 };
 
 data_frame read_csv1(std::string filename);
 data_frame_unlabeled read_csv2(std::string filename);

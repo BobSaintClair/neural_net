@@ -151,6 +151,19 @@ Vector Vector::operator*(const double multiplier) const
 	return result;
 }
 
+Vector Vector::operator*(const Vector& other_vector) const //Hadamard product
+{
+    if (m_data.size() != other_vector.m_data.size())
+        throw std::invalid_argument("Vectors don't have the same dimension!");
+
+    std::vector<double> result(m_data.size());
+    for (size_t i{ 0 }; i < m_data.size(); i++)
+    {
+        result[i] = m_data[i] * other_vector.m_data[i];
+    }
+    return Vector{ result };
+}
+
 double& Vector::operator[](const size_t idx)
 {
 	return m_data[idx];
@@ -187,6 +200,20 @@ void Matrix::print(std::ostream& stream) const
         stream << '\n';
     }
     stream << '\n';
+}
+
+void Matrix::printDims(std::ostream& stream) const
+{
+    stream << "Size:" << '\t' << m_data.size() << '\n';
+    stream << "Cap:" << '\t' << m_data.capacity() << '\n';
+    stream << "nRow:" << '\t' << m_nrow << '\n';
+    stream << "nCol:" << '\t' << m_ncol << '\n';
+    stream << '\n';
+}
+
+size_t Matrix::size() const
+{
+    return m_data.size();
 }
 
 size_t Matrix::nRow() const
@@ -247,7 +274,7 @@ void Matrix::removeCol(const size_t col_idx)
     }
 }
 
-Vector Matrix::getRow(const size_t row_idx) const
+Vector Matrix::getRowAsVector(const size_t row_idx) const
 {
     if (row_idx >= m_nrow)
         throw std::invalid_argument("Index exceeds dimensions!");
@@ -258,7 +285,7 @@ Vector Matrix::getRow(const size_t row_idx) const
     return Vector{ std::vector<double>(m_data.begin() + idx_start, m_data.begin() + idx_start + m_ncol) };
 }
 
-Vector Matrix::getCol(const size_t col_idx) const
+Vector Matrix::getColAsVector(const size_t col_idx) const
 {
     if (col_idx >= m_ncol)
         throw std::invalid_argument("Index exceeds dimensions!");
@@ -271,6 +298,32 @@ Vector Matrix::getCol(const size_t col_idx) const
         result[i] = m_data[i * m_ncol + col_idx];
     }
     return Vector{ result };
+}
+
+Matrix Matrix::getRow(const size_t row_idx) const
+{
+    if (row_idx >= m_nrow)
+        throw std::invalid_argument("Index exceeds dimensions!");
+    else if (m_nrow == 0)
+        throw std::invalid_argument("Matrix is empty!");
+
+    size_t idx_start{ row_idx * m_ncol };
+    return Matrix{ 1, m_ncol, std::vector<double>(m_data.begin() + idx_start, m_data.begin() + idx_start + m_ncol) };
+}
+
+Matrix Matrix::getCol(const size_t col_idx) const
+{
+    if (col_idx >= m_ncol)
+        throw std::invalid_argument("Index exceeds dimensions!");
+    else if (m_ncol == 0)
+        throw std::invalid_argument("Matrix is empty!");
+
+    std::vector<double> result(m_nrow);
+    for (size_t i{ 0 }; i < m_nrow; i++)
+    {
+        result[i] = m_data[i * m_ncol + col_idx];
+    }
+    return Matrix{ m_nrow, 1, result };
 }
 
 double& Matrix::at(const size_t row_idx, const size_t col_idx)
@@ -300,6 +353,24 @@ const double& Matrix::at(const size_t idx) const
 bool Matrix::isSquare() const
 {
     return (m_nrow == m_ncol);
+}
+
+Matrix Matrix::transpose() const
+{
+    Matrix result{ m_ncol, m_nrow, std::vector<double>(m_data.size()) };
+    for (int i{ 0 }; i < m_nrow; i++)
+    {
+        for (int j{ 0 }; j < m_ncol; j++)
+        {
+            result.m_data[j * m_nrow + i] = m_data[i * m_ncol + j];
+        }
+    }
+    return result;
+}
+
+void Matrix::transposeMe()
+{
+    *this = this->transpose();
 }
 
 void Matrix::operator+=(const Matrix& other_matrix)
@@ -390,6 +461,14 @@ double& Matrix::operator[](const size_t idx)
 const double& Matrix::operator[](const size_t idx) const
 {
     return m_data[idx];
+}
+
+Matrix::operator Vector() const
+{
+    if (m_ncol > 1 && m_nrow > 1)
+        throw std::invalid_argument("Matrix is not compatible for conversion!");
+
+    return Vector{ m_data };
 }
 
 Vector operator*(const Matrix& matrix1, const Vector& vector1)

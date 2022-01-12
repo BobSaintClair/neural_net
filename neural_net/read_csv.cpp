@@ -87,6 +87,9 @@ data_frame_unlabeled read_csv2(std::string filename)
         }
     }
 
+    if (dep_vars >= ncol)
+        throw std::invalid_argument("Too many dependent variables!");
+
     size_t nrow{ 0 };
     while (std::getline(myFile, line))
     {
@@ -95,7 +98,7 @@ data_frame_unlabeled read_csv2(std::string filename)
 
         while (ss >> val)
         {
-            if (colIdx == 0)
+            if (colIdx < dep_vars)
                 y.push_back(val);
             else
                 x.push_back(val);
@@ -106,7 +109,7 @@ data_frame_unlabeled read_csv2(std::string filename)
         nrow++;
     }
 
-    return std::pair{ y, Matrix{ nrow, ncol - 1, x } };
+    return std::pair{ Matrix{ nrow, dep_vars, y }, Matrix{ nrow, ncol - dep_vars, x } };
 }
 
 void print_data_frame(data_frame print_me)
