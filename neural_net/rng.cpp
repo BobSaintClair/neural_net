@@ -43,20 +43,16 @@ std::vector<int> RNG::generateNDistinctFromUniform(const int a, const int b, con
         throw std::invalid_argument("Not enough distinct ints in range!");
 
     std::vector<int> result{};
+    result.reserve(b - a + 1);
 
-    std::uniform_int_distribution<int> myUniformDistribution{ a, b };
-
-    for (int i{ 0 }; i < n; i++)
+    for (int i{ a }; i <= b; i++)
     {
-        int number_generated{ myUniformDistribution(m_randomEngine) };
-
-        while (std::find(result.begin(), result.end(), number_generated) != result.end())
-        {
-            number_generated = myUniformDistribution(m_randomEngine);
-        }
-
-        result.push_back(number_generated);
+        result.push_back(i);
     }
+
+    std::shuffle(result.begin(), result.end(), m_randomEngine);
+
+    result.resize(n);
 
     return result;
 }

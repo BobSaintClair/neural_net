@@ -1,5 +1,6 @@
 #pragma once
 #include <chrono>
+#include <iostream>
 
 class Timer
 {
@@ -11,5 +12,5 @@ private:
 public:
 	void reset();
 	double elapsed() const;
-	void print_elapsed() const;
+	void print_elapsed(std::ostream& stream = std::cout) const;
 };

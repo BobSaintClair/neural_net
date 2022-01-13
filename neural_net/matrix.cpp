@@ -463,6 +463,16 @@ const double& Matrix::operator[](const size_t idx) const
     return m_data[idx];
 }
 
+double& Matrix::operator()(const size_t row_idx, const size_t col_idx)
+{
+    return m_data[row_idx * m_ncol + col_idx];
+}
+
+const double& Matrix::operator()(const size_t row_idx, const size_t col_idx) const
+{
+    return m_data[row_idx * m_ncol + col_idx];
+}
+
 Matrix::operator Vector() const
 {
     if (m_ncol > 1 && m_nrow > 1)

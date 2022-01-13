@@ -73,6 +73,8 @@ public:
     Matrix operator*(const Matrix& other_matrix) const;
     double& operator[](const size_t idx);
     const double& operator[](const size_t idx) const;
+    double& operator()(const size_t row_idx, const size_t col_idx);
+    const double& operator()(const size_t row_idx, const size_t col_idx) const;
     operator Vector() const;
 };
 

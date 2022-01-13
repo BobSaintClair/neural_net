@@ -1,8 +1,8 @@
 #include "main.h"
 
 int main()
-{
-	data_frame_unlabeled myData{ read_csv2("data2.csv") };
+{	
+	data_frame_unlabeled myData{ read_csv2("data1.csv") };
 	Matrix& y{ myData.first };
 	Matrix& x{ myData.second };
 
@@ -10,7 +10,7 @@ int main()
 
 	int batch_size{ 10000 };
 	double learning_rate{ 0.01 };
-	size_t n_neurons1{ 4 };
+	size_t n_neurons1{ 5 };
 	size_t n_neurons2{ y.nCol() };
 
 	size_t n_indep_vars{ x.nCol() };
@@ -53,7 +53,7 @@ int main()
 	}
 	orig_error *= 1.0 / static_cast<double>(x.nCol());
 
-	for (int i{ 0 }; i < 2000; i++)
+	for (int i{ 0 }; i < 5000; i++)
 	{
 		Matrix weights1_grad{ n_neurons1, n_indep_vars, std::vector<double>(n_indep_vars * n_neurons1) };
 		Matrix biases1_grad{ n_neurons1, 1, std::vector<double>(n_neurons1) };
@@ -66,11 +66,14 @@ int main()
 
 		for (int j : idx)
 		{
-			Matrix first_layer{ activation_functions::relu(weights1 * x.getCol(j) + biases1) };
-			Matrix first_layer_der{ activation_functions::relu_der(weights1 * x.getCol(j) + biases1) };
+			Matrix x_vec{ x.getCol(j) };
+			Matrix y_vec{ y.getCol(j) };
+
+			Matrix first_layer{ activation_functions::relu(weights1 * x_vec + biases1) };
+			Matrix first_layer_der{ activation_functions::relu_der(weights1 * x_vec + biases1) };
 			Matrix second_layer{ activation_functions::identity(weights2 * first_layer + biases2) };
 			Matrix second_layer_der{ activation_functions::identity_der(weights2 * first_layer + biases2) };
-			Matrix delta_y{ (second_layer - y.getCol(j)).transpose() };
+			Matrix delta_y{ (second_layer - y_vec).transpose() };
 
 			error += (delta_y * delta_y.transpose())[0];
 
@@ -80,7 +83,7 @@ int main()
 			{
 				for (int l = 0; l < weights2_grad.nCol(); l++)
 				{
-					weights2_grad.at(k, l) += delta_y[k] * second_layer_der[k] * first_layer[l];
+					weights2_grad(k, l) += delta_y[k] * second_layer_der[k] * first_layer[l];
 				}
 			}
 
@@ -88,7 +91,7 @@ int main()
 			{
 				for (int l = 0; l < delta_y.size(); l++)
 				{
-					biases1_grad[k] += delta_y[l] * second_layer_der[l] * first_layer_der[k] * weights2.at(l, k);
+					biases1_grad[k] += delta_y[l] * second_layer_der[l] * first_layer_der[k] * weights2(l, k);
 				}
 			}
 
@@ -98,7 +101,7 @@ int main()
 				{
 					for (int m = 0; m < delta_y.size(); m++)
 					{
-						weights1_grad.at(k, l) += delta_y[m] * second_layer_der[m] * first_layer_der[k] * weights2.at(m, k) * x.getCol(j)[l];
+						weights1_grad(k, l) += delta_y[m] * second_layer_der[m] * first_layer_der[k] * weights2(m, k) * x_vec[l];
 					}
 				}
 			}
@@ -135,8 +138,8 @@ int main()
 	{
 		Matrix first_layer{ activation_functions::relu(weights1 * x.getCol(j) + biases1) };
 		Matrix second_layer{ activation_functions::identity(weights2 * first_layer + biases2) };
-		std::cout << y[j] << '\t' << second_layer[0] << '\n';
+		std::cout << "y = " << y[j] << '\t' << "y_hat = " << second_layer[0] << '\n';
 	}
 	
-	return 0;
+	return 0;	
 }
