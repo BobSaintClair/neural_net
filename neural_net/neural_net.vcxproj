@@ -148,6 +148,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="math.cpp" />
     <ClCompile Include="matrix.cpp" />
+    <ClCompile Include="neural_network.cpp" />
     <ClCompile Include="read_csv.cpp" />
     <ClCompile Include="rng.cpp" />
     <ClCompile Include="timer.cpp" />
@@ -156,6 +157,7 @@
     <ClInclude Include="main.h" />
     <ClInclude Include="math.h" />
     <ClInclude Include="matrix.h" />
+    <ClInclude Include="neural_network.h" />
     <ClInclude Include="read_csv.h" />
     <ClInclude Include="rng.h" />
     <ClInclude Include="timer.h" />

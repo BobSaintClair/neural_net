@@ -33,6 +33,9 @@
     <ClCompile Include="timer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="neural_network.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="matrix.h">
@@ -51,6 +54,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="main.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="neural_network.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
