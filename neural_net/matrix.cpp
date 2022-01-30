@@ -1,179 +1,5 @@
 #include "matrix.h"
 
-Vector::Vector(const std::vector<double>& data)
-	: m_data{ data }
-{
-}
-
-Vector::Vector(const size_t vec_size)
-	: m_data{ std::vector<double>(vec_size) }
-{
-}
-
-Vector::Vector(const size_t vec_size, const double value)
-    : m_data{ std::vector<double>(vec_size, value) }
-{
-}
-
-void Vector::print(std::ostream& stream) const
-{
-    stream << "Size:" << '\t' << m_data.size() << '\n';
-    stream << "Cap:" << '\t' << m_data.capacity() << '\n';
-	for (size_t i{ 0 }; i < m_data.size(); i++)
-	{
-        stream << m_data[i] << '\n';
-	}
-    stream << '\n';
-}
-
-size_t Vector::size() const
-{
-	return m_data.size();
-}
-
-void Vector::clear()
-{
-	m_data.clear();
-}
-
-void Vector::pushBack(const double value)
-{
-    m_data.push_back(value);
-}
-
-void Vector::removeElement(const size_t idx)
-{
-	if (idx >= m_data.size())
-		throw std::invalid_argument("Index exceeds dimensions!");
-	m_data.erase(m_data.begin() + idx);
-}
-
-double& Vector::at(const size_t idx)
-{
-	return m_data.at(idx);
-}
-
-const double& Vector::at(const size_t idx) const
-{
-    return m_data.at(idx);
-}
-
-double Vector::length() const
-{
-	if (m_data.size() == 0)
-		throw std::invalid_argument("Vector is empty!");
-	double sum_of_squares{ 0.0 };
-	for (size_t i{ 0 }; i < m_data.size(); i++)
-	{
-		sum_of_squares += m_data[i] * m_data[i];
-	}
-	return std::sqrt(sum_of_squares);
-}
-
-double Vector::dotProduct(const Vector& other_vector) const
-{
-	if (m_data.size() != other_vector.m_data.size())
-		throw std::invalid_argument("Vectors don't have the same dimension!");
-	else if (m_data.size() == 0)
-		throw std::invalid_argument("Vectors are empty!");
-
-	double sum{ 0.0 };
-	for (size_t i{ 0 }; i < m_data.size(); i++)
-	{
-		sum += m_data[i] * other_vector.m_data[i];
-	}
-	return sum;
-}
-
-double Vector::distanceTo(const Vector& other_vector) const
-{
-	if (m_data.size() != other_vector.m_data.size())
-		throw std::invalid_argument("Vectors don't have the same dimension!");
-	else if (m_data.size() == 0)
-		throw std::invalid_argument("Vectors are empty!");
-
-	double sum_of_squares{ 0.0 };
-	for (size_t i{ 0 }; i < m_data.size(); i++)
-	{
-		sum_of_squares += (m_data[i] - other_vector.m_data[i]) * (m_data[i] - other_vector.m_data[i]);
-	}
-	return std::sqrt(sum_of_squares);
-}
-
-void Vector::operator+=(const Vector& other_vector)
-{
-	if (m_data.size() != other_vector.m_data.size())
-		throw std::invalid_argument("Vectors don't have the same dimension!");
-
-	for (size_t i{ 0 }; i < m_data.size(); i++)
-	{
-		m_data[i] += other_vector.m_data[i];
-	}
-}
-
-void Vector::operator-=(const Vector& other_vector)
-{
-	if (m_data.size() != other_vector.m_data.size())
-		throw std::invalid_argument("Vectors don't have the same dimension!");
-
-	for (size_t i{ 0 }; i < m_data.size(); i++)
-	{
-		m_data[i] -= other_vector.m_data[i];
-	}
-}
-
-void Vector::operator*=(const double multiplier)
-{
-	for (size_t i{ 0 }; i < m_data.size(); i++)
-	{
-		m_data[i] *= multiplier;
-	}
-}
-
-Vector Vector::operator+(const Vector& other_vector) const
-{
-	Vector result{ *this };
-	result += other_vector;
-	return result;
-}
-
-Vector Vector::operator-(const Vector& other_vector) const
-{
-	Vector result{ *this };
-	result -= other_vector;
-	return result;
-}
-
-Vector Vector::operator*(const double multiplier) const
-{
-	Vector result{ *this };
-	result *= multiplier;
-	return result;
-}
-
-Vector Vector::operator*(const Vector& other_vector) const //Hadamard product
-{
-    if (m_data.size() != other_vector.m_data.size())
-        throw std::invalid_argument("Vectors don't have the same dimension!");
-
-    std::vector<double> result(m_data.size());
-    for (size_t i{ 0 }; i < m_data.size(); i++)
-    {
-        result[i] = m_data[i] * other_vector.m_data[i];
-    }
-    return Vector{ result };
-}
-
-double& Vector::operator[](const size_t idx)
-{
-	return m_data[idx];
-}
-
-const double& Vector::operator[](const size_t idx) const
-{
-    return m_data[idx];
-}
-
 Matrix::Matrix(const size_t nrow, const size_t ncol, const std::vector<double>& data) //constructor, called when an object is created, don't include default vars here
     : m_nrow{ nrow }, m_ncol{ ncol }, m_data{ data }
 {
@@ -274,32 +100,6 @@ void Matrix::removeCol(const size_t col_idx)
     }
 }
 
-Vector Matrix::getRowAsVector(const size_t row_idx) const
-{
-    if (row_idx >= m_nrow)
-        throw std::invalid_argument("Index exceeds dimensions!");
-    else if (m_nrow == 0)
-        throw std::invalid_argument("Matrix is empty!");
-
-    size_t idx_start{ row_idx * m_ncol };
-    return Vector{ std::vector<double>(m_data.begin() + idx_start, m_data.begin() + idx_start + m_ncol) };
-}
-
-Vector Matrix::getColAsVector(const size_t col_idx) const
-{
-    if (col_idx >= m_ncol)
-        throw std::invalid_argument("Index exceeds dimensions!");
-    else if (m_ncol == 0)
-        throw std::invalid_argument("Matrix is empty!");
-
-    std::vector<double> result(m_nrow);
-    for (size_t i{ 0 }; i < m_nrow; i++)
-    {
-        result[i] = m_data[i * m_ncol + col_idx];
-    }
-    return Vector{ result };
-}
-
 Matrix Matrix::getRow(const size_t row_idx) const
 {
     if (row_idx >= m_nrow)
@@ -371,6 +171,11 @@ Matrix Matrix::transpose() const
 void Matrix::transposeMe()
 {
     *this = this->transpose();
+}
+
+void Matrix::zeroMe()
+{
+    m_data = std::vector<double>(m_data.size(), 0.0);
 }
 
 void Matrix::operator+=(const Matrix& other_matrix)
@@ -471,37 +276,4 @@ double& Matrix::operator()(const size_t row_idx, const size_t col_idx)
 const double& Matrix::operator()(const size_t row_idx, const size_t col_idx) const
 {
     return m_data[row_idx * m_ncol + col_idx];
-}
-
-Matrix::operator Vector() const
-{
-    if (m_ncol > 1 && m_nrow > 1)
-        throw std::invalid_argument("Matrix is not compatible for conversion!");
-
-    return Vector{ m_data };
-}
-
-Vector operator*(const Matrix& matrix1, const Vector& vector1)
-{
-    if (matrix1.nCol() != vector1.size())
-        throw std::invalid_argument("Matrices are not compatible for multiplication!");
-
-    size_t sum_over{ matrix1.nCol() };
-    size_t nrow{ matrix1.nRow() };
-
-    Vector result{ nrow };
-
-    for (size_t i{ 0 }; i < nrow; i++)
-    {
-        double element_value{ 0.0 };
-
-        for (size_t k{ 0 }; k < sum_over; k++)
-        {
-            element_value += matrix1[i * sum_over + k] * vector1[k];
-        }
-
-        result[i] = element_value;
-    }
-
-    return result;
 }

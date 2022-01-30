@@ -10,6 +10,8 @@ private:
     std::vector<Matrix> m_weights{};
     std::vector<Matrix> m_biases{};
     double m_learning_rate{};
+    size_t m_batch_size{};
+    size_t m_n_layers{};
 
     Matrix act_hidden(const Matrix& x) const;
     Matrix act_outer(const Matrix& x) const;
@@ -17,8 +19,8 @@ private:
     Matrix act_outer_der(const Matrix& x) const;
 
 public:
-    NeuralNet(const std::vector<size_t> layers, const double learning_rate = 0.01, const ActivationFunction hidden_af = ActivationFunction::relu, const ActivationFunction outer_af = ActivationFunction::identity);
+    NeuralNet(const std::vector<size_t> layers, const double learning_rate = 0.01, const size_t batch_size = 10000, const ActivationFunction hidden_af = ActivationFunction::relu, const ActivationFunction outer_af = ActivationFunction::identity);
     
-    void train(Matrix& y, Matrix& x); //fix it so y and x are const
+    void train(const Matrix& y, const Matrix& x); //fix it so y and x are const
     Matrix predict(const Matrix& x) const;
 };

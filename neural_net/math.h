@@ -22,16 +22,6 @@ namespace activation_functions
 	double relu_der(const double x);
 	double softplus(const double x);
 	double softplus_der(const double x);
-	Vector identity(const Vector& x);
-	Vector identity_der(const Vector& x);
-	Vector sigmoid(const Vector& x);
-	Vector sigmoid_der(const Vector& x);
-	Vector tanh(const Vector& x);
-	Vector tanh_der(const Vector& x);
-	Vector relu(const Vector& x);
-	Vector relu_der(const Vector& x);
-	Vector softplus(const Vector& x);
-	Vector softplus_der(const Vector& x);
 	Matrix identity(const Matrix& x);
 	Matrix identity_der(const Matrix& x);
 	Matrix sigmoid(const Matrix& x);
