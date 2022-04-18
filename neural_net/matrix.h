@@ -30,6 +30,9 @@ public:
     Matrix transpose() const;
     void transposeMe();
     void zeroMe();
+    Matrix hadamardProduct(const Matrix& other_matrix) const;
+    Matrix zeroButOne(const size_t idx) const;
+    Matrix zeroButOne(const size_t row_idx, const size_t col_idx) const;
 
     void operator+=(const Matrix& other_matrix);
     void operator-=(const Matrix& other_matrix);

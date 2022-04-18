@@ -135,7 +135,9 @@ void NeuralNet::train(const Matrix& y, const Matrix& x)
             biases_grad[j].zeroMe();
         }
 
-        std::vector<int> idx = rng.generateNDistinctFromUniform(0, static_cast<int>(n_rows) - 1, m_batch_size);
+        std::vector<int> idx = rng.generateNDistinctFromUniform(0, static_cast<int>(n_rows) - 1, static_cast<int>(m_batch_size));
+
+        double cur_error{ 0.0 };
 
         for (int j : idx)
         {
@@ -153,6 +155,38 @@ void NeuralNet::train(const Matrix& y, const Matrix& x)
 
             node_vals[node_vals.size() - 1] = act_outer(m_weights[node_vals.size() - 1] * node_vals[node_vals.size() - 2] + m_biases[node_vals.size() - 1]);
             node_vals_der[node_vals.size() - 1] = act_outer_der(m_weights[node_vals.size() - 1] * node_vals[node_vals.size() - 2] + m_biases[node_vals.size() - 1]);
+            Matrix y_hat = node_vals[node_vals.size() - 1];
+            Matrix y_delta = (y_hat - y_vec).transpose();
+
+            cur_error += (y_delta * (y_hat - y_vec))[0];
+
+            for (int k{ 0 }; k < weights_grad.size(); k++)
+            {
+                for (int l{ 0 }; l < weights_grad[k].nRow(); l++)
+                {
+                    Matrix bias_val{ node_vals_der[k].zeroButOne(l) };
+                    for (int m{ k + 1 }; m < weights_grad.size(); m++)
+                    {
+                        bias_val = (m_weights[m] * bias_val).hadamardProduct(node_vals_der[m]);
+                    }
+                    biases_grad[k][l] += (y_delta * bias_val)[0];
+                    
+                    if (k == 0)
+                    {
+                        for (int m{ 0 }; m < weights_grad[k].nCol(); m++)
+                        {
+                            weights_grad[k](l, m) += (y_delta * (bias_val * x_vec[m]))[0];
+                        }
+                    }
+                    else
+                    {
+                        for (int m{ 0 }; m < weights_grad[k].nCol(); m++)
+                        {
+                            weights_grad[k](l, m) += (y_delta * (bias_val * node_vals[k - 1][m]))[0];
+                        }
+                    }
+                }
+            }
         }
 
         for (int j{ 0 }; j < weights_grad.size(); j++)
@@ -165,6 +199,7 @@ void NeuralNet::train(const Matrix& y, const Matrix& x)
         }
 
         std::cout << "Epoch: " << i << '\n';
+        std::cout << "Curr error: " << cur_error/m_batch_size << '\n';
     }
 }
 

@@ -1,0 +1,72 @@
+\documentclass{article}
+\usepackage{amsmath, amssymb, amsthm, tabto}
+
+\title{Mathematics for Neural Network implementation}
+\author{Martin Lazo}
+\date{April 2022}
+\begin{document}
+
+\NumTabs{7}
+\maketitle
+\section{Notation}
+\noindent
+$\odot$ \tab Hadamard (element-wise) product\\
+$\textbf{v}$ \tab Vector, vectors are denoted in lower case and bold\\
+$\textbf{M}$ \tab Matrix, matrices are denoted in upper case and bold\\
+$\textbf{v}_i$ \tab $i$th element of a vector $\textbf{v}$\\
+$\textbf{M}_{i,j}$ \tab Element in the $i$th row and $j$th column of a matrix $\textbf{M}$\\
+$\textbf{M}_{i,}$ \tab $i$th row of a matrix $\textbf{M}$\\
+$\textbf{M}_{,i}$ \tab $i$th column of a matrix $\textbf{M}$\\
+$\textbf{o}_i$ \tab Vector which preserves only the $i$th element of a vector\\
+$$
+\textbf{o}_3\textbf{v}=
+\begin{pmatrix}
+0 & 0 & 1\\
+\end{pmatrix}
+\begin{pmatrix}
+a\\
+b\\
+c
+\end{pmatrix}
+=
+c
+$$
+$\textbf{O}_i$ \tab Square matrix which preserves only the $i$th element of a vector\\
+$$
+\textbf{O}_3\textbf{v}=
+\begin{pmatrix}
+0 & 0 & 0\\
+0 & 0 & 0\\
+0 & 0 & 1
+\end{pmatrix}
+\begin{pmatrix}
+a\\
+b\\
+c
+\end{pmatrix}
+=
+\begin{pmatrix}
+0\\
+0\\
+c
+\end{pmatrix}
+$$
+\\
+Hidden layers are indexed from $0$ to $n$ with $n$ being the output layer and $0$ being the input layer.\\
+\\
+$\textbf{X}$ \tab Features\\
+$\textbf{Y}$ \tab Labels\\
+$\textbf{b}^m$ \tab Bias vector of the $m$th layer\\
+$\textbf{W}^m$ \tab Weights matrix of the $m$th layer\\
+$\textbf{v}^m$ \tab Node values of the $m$th layer\\
+$\phi^m$ \tab Activation function of the $m$th layer\\
+\pagebreak
+\section{Overview}
+
+Neural network output for input $\textbf{x}_i$:
+$$\hat{\textbf{y}}_i=\phi^n(\textbf{W}^n\phi^{n-1}(..\phi^{0}(\textbf{W}^0\textbf{x}_i+\textbf{b}^0)..)+\textbf{b}^n)$$
+
+$$\frac{\partial \hat{\textbf{y}}_k}{\partial \textbf{W}^m_{i,j}}={\phi^n}'(..)\odot..\odot(\textbf{W}^{m+2}({\phi^{m+1}}'\odot(\textbf{W}^{m+1}(\textbf{O}_i{\phi^{m}}'(..)\textbf{o}_j\phi^{m-1}(..)))))$$
+
+$$\frac{\partial \hat{\textbf{y}}_k}{\partial \textbf{W}^n_{i,j}}=\textbf{O}_i{\phi^{n}}'(..)\textbf{o}_j\phi^{n-1}(..)$$
+\end{document}

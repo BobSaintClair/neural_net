@@ -11,4 +11,4 @@ constexpr size_t dep_vars{ 1 };
 
 data_frame read_csv1(std::string filename);
 data_frame_unlabeled read_csv2(std::string filename);
-void print_data_frame(data_frame print_me);
+void print_data_frame(data_frame print_me, std::ostream& stream = std::cout);

@@ -112,25 +112,25 @@ data_frame_unlabeled read_csv2(std::string filename)
     return std::pair{ Matrix{ nrow, dep_vars, y }, Matrix{ nrow, ncol - dep_vars, x } };
 }
 
-void print_data_frame(data_frame print_me)
+void print_data_frame(data_frame print_me, std::ostream& stream)
 {
-    std::cout << std::setprecision(4);
-    std::cout << "Rows: " << print_me.at(0).second.size() << '\n';
-    std::cout << "Cols: " << print_me.size() << '\n';
+    stream << std::setprecision(4);
+    stream << "Rows: " << print_me.at(0).second.size() << '\n';
+    stream << "Cols: " << print_me.size() << '\n';
     for (size_t i{ 0 }; i < print_me.size(); i++)
     {
-        std::cout << print_me.at(i).first << '\t';
+        stream << print_me.at(i).first << '\t';
     }
-    std::cout << '\n';
+    stream << '\n';
     size_t min{ (print_me.at(0).second.size() > n_rows_to_print) ? n_rows_to_print : print_me.at(0).second.size() };
     for (size_t j{ 0 }; j < min; j++)
     {
         for (size_t i{ 0 }; i < print_me.size(); i++)
         {
-            std::cout << print_me.at(i).second.at(j) << '\t';
+            stream << print_me.at(i).second.at(j) << '\t';
         }
-        std::cout << '\n';
+        stream << '\n';
     }
-    std::cout << "..................................";
-    std::cout << '\n';
+    stream << "..................................";
+    stream << '\n';
 }

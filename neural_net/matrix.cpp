@@ -178,6 +178,38 @@ void Matrix::zeroMe()
     m_data = std::vector<double>(m_data.size(), 0.0);
 }
 
+Matrix Matrix::hadamardProduct(const Matrix& other_matrix) const
+{
+    if (m_ncol != other_matrix.m_ncol || m_nrow != other_matrix.m_nrow)
+        throw std::invalid_argument("Matrices have different dimensions!");
+
+    Matrix result{ m_nrow, m_ncol, std::vector<double>(m_data.size()) };
+
+    for (size_t i{ 0 }; i < result.size(); i++)
+    {
+        result[i] = m_data[i]*other_matrix.m_data[i];
+    }
+
+    return result;
+}
+
+Matrix Matrix::zeroButOne(const size_t idx) const
+{
+    Matrix result{ m_nrow, m_ncol, std::vector<double>(m_data.size(), 0.0) };
+    result[idx] = m_data.at(idx);
+    return result;
+}
+
+Matrix Matrix::zeroButOne(const size_t row_idx, const size_t col_idx) const
+{
+    if (row_idx >= m_nrow || col_idx >= m_ncol)
+        throw std::invalid_argument("Index exceeds dimensions!");
+
+    Matrix result{ m_nrow, m_ncol, std::vector<double>(m_data.size(), 0.0) };
+    result[row_idx * m_ncol + col_idx] =  m_data.at(row_idx * m_ncol + col_idx);
+    return result;
+}
+
 void Matrix::operator+=(const Matrix& other_matrix)
 {
     if (m_ncol != other_matrix.m_ncol || m_nrow != other_matrix.m_nrow)
