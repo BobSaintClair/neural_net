@@ -16,7 +16,7 @@ void Matrix::print(std::ostream& stream) const
     stream << "nRow:" << '\t' << m_nrow << '\n';
     stream << "nCol:" << '\t' << m_ncol << '\n';
     size_t idx{ 0 };
-    for (size_t i{ 0 }; i < m_nrow; i++)
+    for (size_t i{ 0 }; i < std::min(5, static_cast<int>(m_nrow)); i++)
     {
         for (size_t j{ 0 }; j < m_ncol; j++)
         {
@@ -25,6 +25,7 @@ void Matrix::print(std::ostream& stream) const
         }
         stream << '\n';
     }
+    stream << "Top 5 rows printed." << '\n';
     stream << '\n';
 }
 
@@ -124,6 +125,28 @@ Matrix Matrix::getCol(const size_t col_idx) const
         result[i] = m_data[i * m_ncol + col_idx];
     }
     return Matrix{ m_nrow, 1, result };
+}
+
+Matrix Matrix::getCols(const std::vector<size_t> col_idx) const
+{
+    if (m_ncol == 0)
+        throw std::invalid_argument("Matrix is empty!");
+
+    for (size_t i : col_idx)
+    {
+        if (i >= m_ncol)
+            throw std::invalid_argument("Index exceeds dimensions!");
+    }
+
+    std::vector<double> result{};
+    for (size_t i{ 0 }; i < m_nrow; i++)
+    {
+        for (size_t j : col_idx)
+        {
+            result.push_back(this->at(i, j));
+        }
+    }
+    return Matrix{ m_nrow, col_idx.size(), result };
 }
 
 double& Matrix::at(const size_t row_idx, const size_t col_idx)

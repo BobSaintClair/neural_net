@@ -5,11 +5,11 @@
 #include <iostream>
 #include <iomanip> // for output manipulator std::setprecision()
 
-data_frame read_csv1(std::string filename)
+data_frame read_csv(std::string filename)
 {
-    data_frame result{};
-
     std::ifstream myFile{ filename };
+    std::vector<std::string> colnames{};
+    std::vector<double> data{};
 
     if (!myFile.is_open())
         throw std::runtime_error("Could not open file");
@@ -19,7 +19,9 @@ data_frame read_csv1(std::string filename)
     std::string colname{ "" };
     double val{ 0.0 };
 
-    // Read the column names
+    size_t n_cols{ 0 };
+    size_t n_rows{ 0 };
+
     if (myFile.good())
     {
         // Extract the first line in the file
@@ -31,7 +33,8 @@ data_frame read_csv1(std::string filename)
         // Extract each column name
         while (std::getline(ss, colname, ','))
         {
-            result.push_back({ colname, std::vector<double> {} });
+            n_cols++;
+            colnames.push_back(colname);
         }
     }
 
@@ -40,97 +43,40 @@ data_frame read_csv1(std::string filename)
     {
         // Create a stringstream of the current line
         std::stringstream ss{ line };
-
+        n_rows++;
         // Keep track of the current column index
-        int colIdx{ 0 };
-
-        // Extract each integer
         while (ss >> val)
         {
             // Add the current integer to the 'colIdx' column's values vector
-            result.at(colIdx).second.push_back(val);
+            data.push_back(val);
             // If the next token is a comma, ignore it and move on
-            if (ss.peek() == ',') ss.ignore();
-
-            // Increment the column index
-            colIdx++;
+            if (ss.peek() == ',') 
+                ss.ignore();
         }
     }
 
-    return result;
-}
-
-data_frame_unlabeled read_csv2(std::string filename)
-{
-    std::vector<double> y{};
-    std::vector<double> x{};
-
-    std::ifstream myFile{ filename };
-
-    if (!myFile.is_open())
-        throw std::runtime_error("Could not open file");
-
-    // Helper vars
-    std::string line{ "" };
-    std::string colname{ "" };
-    double val{ 0.0 };
-
-    size_t ncol{ 0 };
-    if (myFile.good())
-    {
-        std::getline(myFile, line);
-        std::stringstream ss{ line };
-
-        while (std::getline(ss, colname, ','))
-        {
-            ncol++;
-        }
-    }
-
-    if (dep_vars >= ncol)
-        throw std::invalid_argument("Too many dependent variables!");
-
-    size_t nrow{ 0 };
-    while (std::getline(myFile, line))
-    {
-        std::stringstream ss{ line };
-        int colIdx{ 0 };
-
-        while (ss >> val)
-        {
-            if (colIdx < dep_vars)
-                y.push_back(val);
-            else
-                x.push_back(val);
-
-            if (ss.peek() == ',') ss.ignore();
-            colIdx++;
-        }
-        nrow++;
-    }
-
-    return std::pair{ Matrix{ nrow, dep_vars, y }, Matrix{ nrow, ncol - dep_vars, x } };
+    return std::pair{ colnames, Matrix{ n_rows, n_cols, data } };
 }
 
 void print_data_frame(data_frame print_me, std::ostream& stream)
 {
-    stream << std::setprecision(4);
-    stream << "Rows: " << print_me.at(0).second.size() << '\n';
-    stream << "Cols: " << print_me.size() << '\n';
-    for (size_t i{ 0 }; i < print_me.size(); i++)
+    stream << std::fixed;
+    stream << std::setprecision(3);
+    stream << "Rows: " << print_me.second.nRow() << '\n';
+    stream << "Cols: " << print_me.second.nCol() << '\n';
+    for (size_t i{ 0 }; i < print_me.first.size(); i++)
     {
-        stream << print_me.at(i).first << '\t';
+        stream << print_me.first[i] << '\t';
     }
     stream << '\n';
-    size_t min{ (print_me.at(0).second.size() > n_rows_to_print) ? n_rows_to_print : print_me.at(0).second.size() };
-    for (size_t j{ 0 }; j < min; j++)
+    for (size_t i{ 0 }; i < std::min(5, static_cast<int>(print_me.second.nRow())); i++)
     {
-        for (size_t i{ 0 }; i < print_me.size(); i++)
+        for (size_t j{ 0 }; j < print_me.second.nCol(); j++)
         {
-            stream << print_me.at(i).second.at(j) << '\t';
+            stream << print_me.second.at(i, j) << '\t';
         }
         stream << '\n';
     }
-    stream << "..................................";
+    stream << "Top 5 rows printed." << '\n';
     stream << '\n';
 }

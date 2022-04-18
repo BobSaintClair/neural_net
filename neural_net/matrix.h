@@ -22,6 +22,7 @@ public:
     void removeCol(const size_t col_idx);
     Matrix getRow(const size_t row_idx) const;
     Matrix getCol(const size_t col_idx) const;
+    Matrix getCols(const std::vector<size_t> col_idx) const;
     double& at(const size_t row_idx, const size_t col_idx);
     double& at(const size_t idx);
     const double& at(const size_t row_idx, const size_t col_idx) const;
