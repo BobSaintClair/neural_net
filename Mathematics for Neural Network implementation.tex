@@ -56,17 +56,31 @@ Hidden layers are indexed from $0$ to $n$ with $n$ being the output layer and $0
 \\
 $\textbf{X}$ \tab Features\\
 $\textbf{Y}$ \tab Labels\\
+$\textbf{x}$ \tab Features data point\\
+$\textbf{y}$ \tab Labels data point\\
 $\textbf{b}^m$ \tab Bias vector of the $m$th layer\\
 $\textbf{W}^m$ \tab Weights matrix of the $m$th layer\\
-$\textbf{v}^m$ \tab Node values of the $m$th layer\\
-$\phi^m$ \tab Activation function of the $m$th layer\\
+$\phi^m$ \tab Activation function of the $m$th layer, applied element-wise\\
+${\phi^m}'$ \tab Derivative of the activation function of the $m$th layer\\
 \pagebreak
 \section{Overview}
 
-Neural network output for input $\textbf{x}_i$:
-$$\hat{\textbf{y}}_i=\phi^n(\textbf{W}^n\phi^{n-1}(..\phi^{0}(\textbf{W}^0\textbf{x}_i+\textbf{b}^0)..)+\textbf{b}^n)$$
+Neural network output for input $\textbf{x}$:
+$$\hat{\textbf{y}}=\phi^n(\textbf{W}^n\phi^{n-1}(..\phi^{0}(\textbf{W}^0\textbf{x}+\textbf{b}^0)..)+\textbf{b}^n)$$
 
-$$\frac{\partial \hat{\textbf{y}}_k}{\partial \textbf{W}^m_{i,j}}={\phi^n}'(..)\odot..\odot(\textbf{W}^{m+2}({\phi^{m+1}}'\odot(\textbf{W}^{m+1}(\textbf{O}_i{\phi^{m}}'(..)\textbf{o}_j\phi^{m-1}(..)))))$$
+\noindent 
+Partial derivatives w.r.t. weights:
+$$\frac{\partial \hat{\textbf{y}}}{\partial \textbf{W}^m_{i,j}}={\phi^n}'(..)\odot..\odot(\textbf{W}^{m+2}({\phi^{m+1}}'(..)\odot(\textbf{W}^{m+1}(\textbf{O}_i{\phi^{m}}'(..)\textbf{o}_j\phi^{m-1}(..)))))$$
 
-$$\frac{\partial \hat{\textbf{y}}_k}{\partial \textbf{W}^n_{i,j}}=\textbf{O}_i{\phi^{n}}'(..)\textbf{o}_j\phi^{n-1}(..)$$
+$$\frac{\partial \hat{\textbf{y}}}{\partial \textbf{W}^0_{i,j}}={\phi^n}'(..)\odot..\odot(\textbf{W}^{2}({\phi^{1}}'(..)\odot(\textbf{W}^{1}(\textbf{O}_i{\phi^{0}}'(..)\textbf{x}_j))))$$
+
+$$\frac{\partial \hat{\textbf{y}}}{\partial \textbf{W}^n_{i,j}}=\textbf{O}_i{\phi^{n}}'(..)\textbf{o}_j\phi^{n-1}(..)$$
+
+\noindent 
+Partial derivatives w.r.t. biases:
+$$\frac{\partial \hat{\textbf{y}}}{\partial \textbf{b}^m_{i}}={\phi^n}'(..)\odot..\odot(\textbf{W}^{m+2}({\phi^{m+1}}'(..)\odot(\textbf{W}^{m+1}(\textbf{O}_i{\phi^{m}}'(..)))))$$
+
+$$\frac{\partial \hat{\textbf{y}}}{\partial \textbf{b}^0_{i}}={\phi^n}'(..)\odot..\odot(\textbf{W}^{2}({\phi^{1}}'(..)\odot(\textbf{W}^{1}(\textbf{O}_i{\phi^{0}}'(..)))))$$
+
+$$\frac{\partial \hat{\textbf{y}}}{\partial \textbf{b}^n_{i}}=\textbf{O}_i{\phi^{n}}'(..)$$
 \end{document}

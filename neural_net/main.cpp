@@ -6,7 +6,7 @@ int main()
 	Matrix y = myData.second.getCols(std::vector<size_t>{ 0 });
 	Matrix x = myData.second.getCols(std::vector<size_t>{ 1, 2, 3 });
 		
-	NeuralNet nn{ std::vector<size_t>{ x.nCol(), 30, 10, 5, y.nCol() }};
+	NeuralNet nn{ std::vector<size_t>{ x.nCol(), 40, 20, 10, y.nCol() }};
 	nn.train(y, x);
 	
 	return 0;	

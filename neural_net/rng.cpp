@@ -8,6 +8,21 @@ RNG::RNG()
     m_randomEngine = std::default_random_engine{ m_seed };
 }
 
+void RNG::shuffleVector(std::vector<double>& shuffle_me)
+{
+    std::shuffle(shuffle_me.begin(), shuffle_me.end(), m_randomEngine);
+}
+
+void RNG::shuffleVector(std::vector<int>& shuffle_me)
+{
+    std::shuffle(shuffle_me.begin(), shuffle_me.end(), m_randomEngine);
+}
+
+void RNG::shuffleVector(std::vector<size_t>& shuffle_me)
+{
+    std::shuffle(shuffle_me.begin(), shuffle_me.end(), m_randomEngine);
+}
+
 double RNG::generateFromNormal(const double mean, const double st_dev)
 {
     std::normal_distribution<double> myGaussianDistribution{ mean, st_dev };

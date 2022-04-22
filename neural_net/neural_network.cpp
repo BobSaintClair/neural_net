@@ -1,5 +1,6 @@
 #include "neural_network.h"
 #include "rng.h"
+#include <numeric>
 
 Matrix NeuralNet::act_hidden(const Matrix& x) const
 {
@@ -77,8 +78,8 @@ Matrix NeuralNet::act_outer_der(const Matrix& x) const
     }
 }
 
-NeuralNet::NeuralNet(const std::vector<size_t> layers, const double learning_rate, const size_t batch_size, const ActivationFunction hidden_af, const ActivationFunction outer_af)
-    : m_layers{ layers }, m_hidden_af{ hidden_af }, m_outer_af{ outer_af }, m_learning_rate{ learning_rate }, m_batch_size{ batch_size }, m_n_layers{ layers.size() }
+NeuralNet::NeuralNet(const std::vector<size_t> layers, const double learning_rate, const size_t batch_size, const size_t epochs, const ActivationFunction hidden_af, const ActivationFunction outer_af)
+    : m_layers{ layers }, m_hidden_af{ hidden_af }, m_outer_af{ outer_af }, m_learning_rate{ learning_rate }, m_batch_size{ batch_size }, m_epochs{ epochs }, m_n_layers{ layers.size() }
 {
     if (layers.size() < 3)
         throw std::invalid_argument("Not enough layers!");
@@ -117,89 +118,97 @@ void NeuralNet::train(const Matrix& y, const Matrix& x)
         throw std::invalid_argument("Layer size mismatch!");
 
     RNG rng{};
-    size_t n_rows{ x.nRow() };
 
-    std::vector<Matrix> node_vals{};
-    node_vals.resize(m_n_layers - 1);
-    std::vector<Matrix> node_vals_der{};
-    node_vals_der.resize(m_n_layers - 1);
+    size_t n_rows{ x.nRow() };
+    size_t n_iters_per_epoch = static_cast<size_t>(ceil(static_cast<double>(n_rows) / static_cast<double>(m_batch_size)));
+
+    std::vector<size_t> shuffled_batch_idx(n_rows);
+    std::iota(shuffled_batch_idx.begin(), shuffled_batch_idx.end(), 0);
+
+    std::vector<Matrix> node_vals(m_n_layers - 1);
+    std::vector<Matrix> node_vals_der(m_n_layers - 1);
 
     std::vector<Matrix> weights_grad{ m_weights };
     std::vector<Matrix> biases_grad{ m_biases };
 
-    for (int i{ 0 }; i < 2000; i++)
+    for (size_t cur_epoch{ 0 }; cur_epoch < m_epochs; cur_epoch++)
     {
-        for (int j{ 0 }; j < weights_grad.size(); j++)
+        rng.shuffleVector(shuffled_batch_idx);
+
+        double epoch_error{ 0.0 };
+
+        for (size_t i{ 0 }; i < n_iters_per_epoch; i++)
         {
-            weights_grad[j].zeroMe();
-            biases_grad[j].zeroMe();
-        }
-
-        std::vector<int> idx = rng.generateNDistinctFromUniform(0, static_cast<int>(n_rows) - 1, static_cast<int>(m_batch_size));
-
-        double cur_error{ 0.0 };
-
-        for (int j : idx)
-        {
-            Matrix x_vec{ x.getRow(j).transpose() };
-            Matrix y_vec{ y.getRow(j).transpose() };
-
-            node_vals[0] = act_hidden(m_weights[0] * x_vec + m_biases[0]);
-            node_vals_der[0] = act_hidden_der(m_weights[0] * x_vec + m_biases[0]);
-
-            for (int k{ 1 }; k < node_vals.size() - 1; k++)
+            for (size_t j{ 0 }; j < weights_grad.size(); j++)
             {
-                node_vals[k] = act_hidden(m_weights[k] * node_vals[k - 1] + m_biases[k]);
-                node_vals_der[k] = act_hidden_der(m_weights[k] * node_vals[k - 1] + m_biases[k]);
+                weights_grad[j].zeroMe();
+                biases_grad[j].zeroMe();
             }
 
-            node_vals[node_vals.size() - 1] = act_outer(m_weights[node_vals.size() - 1] * node_vals[node_vals.size() - 2] + m_biases[node_vals.size() - 1]);
-            node_vals_der[node_vals.size() - 1] = act_outer_der(m_weights[node_vals.size() - 1] * node_vals[node_vals.size() - 2] + m_biases[node_vals.size() - 1]);
-            Matrix y_hat = node_vals[node_vals.size() - 1];
-            Matrix y_delta = (y_hat - y_vec).transpose();
-
-            cur_error += (y_delta * (y_hat - y_vec))[0];
-
-            for (int k{ 0 }; k < weights_grad.size(); k++)
+            size_t count_me{ 0 };
+            for (size_t j{ i * m_batch_size }; j < std::min((i + 1) * m_batch_size, n_rows); j++)
             {
-                for (int l{ 0 }; l < weights_grad[k].nRow(); l++)
+                count_me++;
+                Matrix x_vec{ x.getRow(shuffled_batch_idx[j]).transpose() };
+                Matrix y_vec{ y.getRow(shuffled_batch_idx[j]).transpose() };
+
+                node_vals[0] = act_hidden(m_weights[0] * x_vec + m_biases[0]);
+                node_vals_der[0] = act_hidden_der(m_weights[0] * x_vec + m_biases[0]);
+
+                for (int k{ 1 }; k < node_vals.size() - 1; k++)
                 {
-                    Matrix bias_val{ node_vals_der[k].zeroButOne(l) };
-                    for (int m{ k + 1 }; m < weights_grad.size(); m++)
+                    node_vals[k] = act_hidden(m_weights[k] * node_vals[k - 1] + m_biases[k]);
+                    node_vals_der[k] = act_hidden_der(m_weights[k] * node_vals[k - 1] + m_biases[k]);
+                }
+
+                node_vals[node_vals.size() - 1] = act_outer(m_weights[node_vals.size() - 1] * node_vals[node_vals.size() - 2] + m_biases[node_vals.size() - 1]);
+                node_vals_der[node_vals.size() - 1] = act_outer_der(m_weights[node_vals.size() - 1] * node_vals[node_vals.size() - 2] + m_biases[node_vals.size() - 1]);
+
+                Matrix y_hat = node_vals[node_vals.size() - 1];
+                Matrix y_delta = (y_hat - y_vec).transpose();
+
+                epoch_error += (y_delta * y_delta.transpose())[0];
+
+                for (int k{ 0 }; k < weights_grad.size(); k++)
+                {
+                    for (int l{ 0 }; l < weights_grad[k].nRow(); l++)
                     {
-                        bias_val = (m_weights[m] * bias_val).hadamardProduct(node_vals_der[m]);
-                    }
-                    biases_grad[k][l] += (y_delta * bias_val)[0];
-                    
-                    if (k == 0)
-                    {
-                        for (int m{ 0 }; m < weights_grad[k].nCol(); m++)
+                        Matrix bias_val{ node_vals_der[k].zeroButOne(l) };
+                        for (int m{ k + 1 }; m < weights_grad.size(); m++)
                         {
-                            weights_grad[k](l, m) += (y_delta * (bias_val * x_vec[m]))[0];
+                            bias_val = (m_weights[m] * bias_val).hadamardProduct(node_vals_der[m]);
                         }
-                    }
-                    else
-                    {
-                        for (int m{ 0 }; m < weights_grad[k].nCol(); m++)
+                        biases_grad[k][l] += (y_delta * bias_val)[0];
+
+                        if (k == 0)
                         {
-                            weights_grad[k](l, m) += (y_delta * (bias_val * node_vals[k - 1][m]))[0];
+                            for (int m{ 0 }; m < weights_grad[k].nCol(); m++)
+                            {
+                                weights_grad[k](l, m) += (y_delta * (bias_val * x_vec[m]))[0];
+                            }
+                        }
+                        else
+                        {
+                            for (int m{ 0 }; m < weights_grad[k].nCol(); m++)
+                            {
+                                weights_grad[k](l, m) += (y_delta * (bias_val * node_vals[k - 1][m]))[0];
+                            }
                         }
                     }
                 }
             }
+
+            for (int j{ 0 }; j < weights_grad.size(); j++)
+            {
+                weights_grad[j] *= 2.0 / static_cast<double>(count_me);
+                m_weights[j] -= weights_grad[j] * m_learning_rate;
+
+                biases_grad[j] *= 2.0 / static_cast<double>(count_me);
+                m_biases[j] -= biases_grad[j] * m_learning_rate;
+            }
         }
 
-        for (int j{ 0 }; j < weights_grad.size(); j++)
-        {
-            weights_grad[j] *= 2.0 / static_cast<double>(m_batch_size);
-            m_weights[j] -= weights_grad[j] * m_learning_rate;
-
-            biases_grad[j] *= 2.0 / static_cast<double>(m_batch_size);
-            m_biases[j] -= biases_grad[j] * m_learning_rate;
-        }
-
-        std::cout << "Epoch: " << i << '\n';
-        std::cout << "Curr error: " << cur_error/m_batch_size << '\n';
+        std::cout << "Epoch: " << cur_epoch << '\t' << "Error: " << epoch_error / static_cast<double>(n_rows) << '\n';
     }
 }
 
