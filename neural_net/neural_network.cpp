@@ -1,6 +1,8 @@
 #include "neural_network.h"
 #include "rng.h"
 #include <numeric>
+#include <fstream>
+#include <sstream>
 
 Matrix NeuralNet::act_hidden(const Matrix& x) const
 {
@@ -78,8 +80,8 @@ Matrix NeuralNet::act_outer_der(const Matrix& x) const
     }
 }
 
-NeuralNet::NeuralNet(const std::vector<size_t> layers, const double learning_rate, const size_t batch_size, const size_t epochs, const ActivationFunction hidden_af, const ActivationFunction outer_af)
-    : m_layers{ layers }, m_hidden_af{ hidden_af }, m_outer_af{ outer_af }, m_learning_rate{ learning_rate }, m_batch_size{ batch_size }, m_epochs{ epochs }, m_n_layers{ layers.size() }
+NeuralNet::NeuralNet(const std::vector<size_t> layers, const ActivationFunction hidden_af, const ActivationFunction outer_af)
+    : m_layers{ layers }, m_hidden_af{ hidden_af }, m_outer_af{ outer_af }, m_n_layers{ layers.size() }
 {
     if (layers.size() < 3)
         throw std::invalid_argument("Not enough layers!");
@@ -112,43 +114,53 @@ NeuralNet::NeuralNet(const std::vector<size_t> layers, const double learning_rat
     }
 }
 
-void NeuralNet::train(const Matrix& y, const Matrix& x)
+void NeuralNet::train(const Matrix& y, const Matrix& x, const double learning_rate, const size_t batch_size, const size_t epochs)
 {
+    //Ensure the data parameters match the network specifications
     if (m_layers.at(0) != x.nCol() || m_layers.at(m_n_layers - 1) != y.nCol())
         throw std::invalid_argument("Layer size mismatch!");
 
+    //Initialize random number generator
     RNG rng{};
 
+    //Initialize some useful variables
     size_t n_rows{ x.nRow() };
-    size_t n_iters_per_epoch = static_cast<size_t>(ceil(static_cast<double>(n_rows) / static_cast<double>(m_batch_size)));
+    size_t n_iters_per_epoch = static_cast<size_t>(ceil(static_cast<double>(n_rows) / static_cast<double>(batch_size)));
 
+    //Create an index vector which will be used to loop through the data
     std::vector<size_t> shuffled_batch_idx(n_rows);
+    //Populate the index vector from 0 to n_rows
     std::iota(shuffled_batch_idx.begin(), shuffled_batch_idx.end(), 0);
 
+    //Initialize the node value vector of matrices
     std::vector<Matrix> node_vals(m_n_layers - 1);
     std::vector<Matrix> node_vals_der(m_n_layers - 1);
 
+    //Initialize the gradient and bias gradient matrices
     std::vector<Matrix> weights_grad{ m_weights };
     std::vector<Matrix> biases_grad{ m_biases };
 
-    for (size_t cur_epoch{ 0 }; cur_epoch < m_epochs; cur_epoch++)
+    //Loop through epochs
+    for (size_t cur_epoch{ 0 }; cur_epoch < epochs; cur_epoch++)
     {
+        //Shuffle the index vector
         rng.shuffleVector(shuffled_batch_idx);
-
+        //Epoch error
         double epoch_error{ 0.0 };
 
+        //Loop through iterations within the epoch
         for (size_t i{ 0 }; i < n_iters_per_epoch; i++)
         {
+            //Zero the gradients and biases
             for (size_t j{ 0 }; j < weights_grad.size(); j++)
             {
                 weights_grad[j].zeroMe();
                 biases_grad[j].zeroMe();
             }
 
-            size_t count_me{ 0 };
-            for (size_t j{ i * m_batch_size }; j < std::min((i + 1) * m_batch_size, n_rows); j++)
+            //Loop through the data for the iteration
+            for (size_t j{ i * batch_size }; j < std::min((i + 1) * batch_size, n_rows); j++)
             {
-                count_me++;
                 Matrix x_vec{ x.getRow(shuffled_batch_idx[j]).transpose() };
                 Matrix y_vec{ y.getRow(shuffled_batch_idx[j]).transpose() };
 
@@ -198,16 +210,20 @@ void NeuralNet::train(const Matrix& y, const Matrix& x)
                 }
             }
 
+            //Calculate the number of data points used in this iteration
+            double denominator{ static_cast<double>(std::min((i + 1) * batch_size, n_rows) - i * batch_size) };
+
+            //Update the weights and biases
             for (int j{ 0 }; j < weights_grad.size(); j++)
             {
-                weights_grad[j] *= 2.0 / static_cast<double>(count_me);
-                m_weights[j] -= weights_grad[j] * m_learning_rate;
+                weights_grad[j] *= 2.0 / denominator;
+                m_weights[j] -= weights_grad[j] * learning_rate;
 
-                biases_grad[j] *= 2.0 / static_cast<double>(count_me);
-                m_biases[j] -= biases_grad[j] * m_learning_rate;
+                biases_grad[j] *= 2.0 / denominator;
+                m_biases[j] -= biases_grad[j] * learning_rate;
             }
         }
-
+        //Output the epoch number and error
         std::cout << "Epoch: " << cur_epoch << '\t' << "Error: " << epoch_error / static_cast<double>(n_rows) << '\n';
     }
 }
@@ -221,4 +237,111 @@ Matrix NeuralNet::predict(const Matrix& x) const
     }
     result = act_outer(m_weights[m_weights.size() - 1] * result + m_biases[m_weights.size() - 1]);
     return result;
+}
+
+void NeuralNet::save(const std::string filename) const
+{
+    //Create an output stream class to operate on files
+    std::ofstream outfile(filename);
+
+    //Save network dimensions
+    for (size_t i{ 0 }; i < m_layers.size(); i++)
+    {
+        outfile << m_layers[i] << ',';
+    }
+
+    outfile << '\n';
+
+    //Save network weights
+    for (size_t i{ 0 }; i < m_weights.size(); i++)
+    {
+        for (size_t j{ 0 }; j < m_weights[i].size(); j++)
+        {
+            outfile << m_weights[i][j] << ',';
+        }
+    }
+
+    outfile << '\n';
+
+    //Save network biases
+    for (size_t i{ 0 }; i < m_biases.size(); i++)
+    {
+        for (size_t j{ 0 }; j < m_biases[i].size(); j++)
+        {
+            outfile << m_biases[i][j] << ',';
+        }
+    }
+}
+
+void NeuralNet::load(const std::string filename)
+{
+    m_layers.clear();
+    m_weights.clear();
+    m_biases.clear();
+    m_n_layers = 0;
+
+    //Create an input stream class to operate on files
+    std::ifstream infile(filename);
+
+    if (infile.good())
+    {
+        std::string line{ "" };
+        double data{ 0.0 };
+        size_t data_size_t{ 0 };
+
+        std::getline(infile, line);
+        std::istringstream iss_layers{ line };
+        while (iss_layers >> data_size_t)
+        {
+            if (iss_layers.peek() == ',')
+                iss_layers.ignore();
+
+            m_layers.push_back(data_size_t);
+        }
+        iss_layers.str(std::string());
+        iss_layers.clear();
+
+        m_n_layers = m_layers.size();
+
+        for (size_t i{ 1 }; i < m_n_layers; i++)
+        {
+            Matrix weights{ m_layers[i], m_layers[i - 1], std::vector<double>(m_layers[i] * m_layers[i - 1]) };
+            Matrix biases{ m_layers[i], 1, std::vector<double>(m_layers[i]) };
+
+            m_weights.push_back(weights);
+            m_biases.push_back(biases);
+        }
+        
+        std::getline(infile, line);
+        std::istringstream iss_weights{ line };
+        for (size_t i{ 0 }; i < m_weights.size(); i++)
+        {
+            for (size_t j{ 0 }; j < m_weights[i].size(); j++)
+            {
+                if (iss_weights.peek() == ',')
+                    iss_weights.ignore();
+
+                iss_weights >> data;
+                m_weights[i][j] = data;
+            }
+        }
+        iss_weights.str(std::string());
+        iss_weights.clear();
+
+        std::getline(infile, line);
+        std::istringstream iss_biases{ line };
+        for (size_t i{ 0 }; i < m_biases.size(); i++)
+        {
+            for (size_t j{ 0 }; j < m_biases[i].size(); j++)
+            {
+                if (iss_biases.peek() == ',')
+                    iss_biases.ignore();
+
+                iss_biases >> data;
+                m_biases[i][j] = data;
+            }
+        }
+        iss_biases.str(std::string());
+        iss_biases.clear();
+    }
 }

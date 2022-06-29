@@ -18,6 +18,8 @@ public:
     size_t nRow() const;
     size_t nCol() const;
     void clear();
+    double sumElements() const;
+    double dotProduct(const Matrix& other_matrix) const;
     void removeRow(const size_t row_idx);
     void removeCol(const size_t col_idx);
     Matrix getRow(const size_t row_idx) const;

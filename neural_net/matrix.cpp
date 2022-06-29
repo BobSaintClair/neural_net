@@ -1,4 +1,6 @@
 #include "matrix.h"
+#include <algorithm>
+#include <numeric>
 
 Matrix::Matrix(const size_t nrow, const size_t ncol, const std::vector<double>& data) //constructor, called when an object is created, don't include default vars here
     : m_nrow{ nrow }, m_ncol{ ncol }, m_data{ data }
@@ -58,6 +60,26 @@ void Matrix::clear()
     m_nrow = 0;
     m_ncol = 0;
     m_data.clear();
+}
+
+double Matrix::sumElements() const
+{
+    return accumulate(m_data.begin(), m_data.end(), 0.0);
+}
+
+double Matrix::dotProduct(const Matrix& other_matrix) const
+{
+    if (m_ncol != other_matrix.m_ncol || m_nrow != other_matrix.m_nrow)
+        throw std::invalid_argument("Matrices have different dimensions!");
+
+    double result{ 0.0 };
+
+    for (size_t i{ 0 }; i < m_data.size(); i++)
+    {
+        result += m_data[i] * m_data[i];
+    }
+
+    return result;
 }
 
 void Matrix::removeRow(const size_t row_idx)
@@ -129,21 +151,15 @@ Matrix Matrix::getCol(const size_t col_idx) const
 
 Matrix Matrix::getCols(const std::vector<size_t> col_idx) const
 {
-    if (m_ncol == 0)
-        throw std::invalid_argument("Matrix is empty!");
-
-    for (size_t i : col_idx)
-    {
-        if (i >= m_ncol)
-            throw std::invalid_argument("Index exceeds dimensions!");
-    }
-
+    if (std::max_element(col_idx.begin(), col_idx.end())[0] >= m_ncol)
+        throw std::invalid_argument("Index exceeds dimensions!");
+    
     std::vector<double> result{};
     for (size_t i{ 0 }; i < m_nrow; i++)
     {
         for (size_t j : col_idx)
         {
-            result.push_back(this->at(i, j));
+            result.push_back(this->operator()(i, j));
         }
     }
     return Matrix{ m_nrow, col_idx.size(), result };
@@ -289,24 +305,20 @@ Matrix Matrix::operator*(const Matrix& other_matrix) const
     if (m_ncol != other_matrix.m_nrow)
         throw std::invalid_argument("Matrices are not compatible for multiplication!");
 
-    size_t sum_over{ m_ncol };
-    size_t nrow{ m_nrow };
-    size_t ncol{ other_matrix.m_ncol };
+    Matrix result{ m_nrow, other_matrix.m_ncol, std::vector<double>(m_nrow * other_matrix.m_ncol) };
 
-    Matrix result{ nrow, ncol, std::vector<double>(nrow * ncol) };
-
-    for (size_t i{ 0 }; i < nrow; i++)
+    for (size_t i{ 0 }; i < m_nrow; i++)
     {
-        for (size_t j{ 0 }; j < ncol; j++)
+        for (size_t j{ 0 }; j < other_matrix.m_ncol; j++)
         {
             double element_value{ 0.0 };
 
-            for (size_t k{ 0 }; k < sum_over; k++)
+            for (size_t k{ 0 }; k < m_ncol; k++)
             {
                 element_value += m_data[i * m_ncol + k] * other_matrix.m_data[k * other_matrix.m_ncol + j];
             }
 
-            result.m_data[i * ncol + j] = element_value;
+            result.m_data[i * other_matrix.m_ncol + j] = element_value;
         }
     }
 
