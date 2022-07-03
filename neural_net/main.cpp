@@ -1,5 +1,4 @@
 #include "main.h"
-#include <numeric>
 
 int main()
 {	
@@ -14,25 +13,14 @@ int main()
 
 	std::vector<size_t> network_dimensions{ x_train.nCol(), 20, 10, 5, y_train.nCol() };
 
-	NeuralNet nn{ network_dimensions, ActivationFunction::sigmoid, ActivationFunction::identity };	
-	nn.train(y_train, x_train, 0.02, 500, 15);
+	NeuralNet nn{ network_dimensions, ActivationFunction::tanh, ActivationFunction::identity };	
+	nn.train(y_train, x_train, 0.02, 1000, 40);
 	
-	y_test.print();
-		
-	double test_error{ 0.0 };
-	for (int i = 0; i < y_test.nRow(); i++)
-	{
-		if (i < 100)
-		{
-			std::cout << nn.predict(x_test.getRow(i).transpose())[0] << '\n';
-			std::cout << y_test.getRow(i)[0] << '\n';
-			std::cout << '\n';
-			std::cout << '\n';
-		}
+	Matrix yhat_test{ nn.predict(x_test) };
 
-		test_error += abs(y_test[i] - nn.predict(x_test.getRow(i).transpose())[0]);
-	}
-	std::cout << "Test error: " << test_error / static_cast<double>(y_test.nRow()) << '\n';
+	double test_error{ ((yhat_test - y_test).dotProduct(yhat_test - y_test))/y_test.size() };
+	
+	std::cout << "Test error: " << test_error << '\n';
 	
 	return 0;	
 }

@@ -2,6 +2,8 @@
 #include <vector>
 #include <iostream>
 
+std::vector<size_t> sliceVector(const std::vector<size_t>& vector, const size_t first_idx, const size_t second_idx);
+
 class Matrix
 {
 private:
@@ -23,6 +25,7 @@ public:
     void removeRow(const size_t row_idx);
     void removeCol(const size_t col_idx);
     Matrix getRow(const size_t row_idx) const;
+    Matrix getRows(const std::vector<size_t> row_idx) const;
     Matrix getCol(const size_t col_idx) const;
     Matrix getCols(const std::vector<size_t> col_idx) const;
     double& at(const size_t row_idx, const size_t col_idx);
@@ -34,8 +37,10 @@ public:
     void transposeMe();
     void zeroMe();
     Matrix hadamardProduct(const Matrix& other_matrix) const;
+    Matrix hadamardProductColumnwise(const Matrix& other_matrix) const;
     Matrix zeroButOne(const size_t idx) const;
     Matrix zeroButOne(const size_t row_idx, const size_t col_idx) const;
+    Matrix zeroButOneRow(const size_t row_idx) const;
 
     void operator+=(const Matrix& other_matrix);
     void operator-=(const Matrix& other_matrix);
@@ -44,6 +49,8 @@ public:
     Matrix operator-(const Matrix& other_matrix) const;
     Matrix operator*(const double multiplier) const;
     Matrix operator*(const Matrix& other_matrix) const;
+    //Matrix multiplyEachColumnByValue(const Matrix& other_matrix) const;
+    Matrix addColumnwise(const Matrix& other_matrix) const;
     double& operator[](const size_t idx);
     const double& operator[](const size_t idx) const;
     double& operator()(const size_t row_idx, const size_t col_idx);

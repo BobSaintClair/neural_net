@@ -158,60 +158,54 @@ void NeuralNet::train(const Matrix& y, const Matrix& x, const double learning_ra
                 biases_grad[j].zeroMe();
             }
 
-            //Loop through the data for the iteration
-            for (size_t j{ i * batch_size }; j < std::min((i + 1) * batch_size, n_rows); j++)
+            std::vector<size_t> iter_idx{ sliceVector(shuffled_batch_idx, i * batch_size, std::min((i + 1) * batch_size, n_rows)) };
+            Matrix x_vec{ x.getRows(iter_idx).transpose() };
+            Matrix y_vec{ y.getRows(iter_idx).transpose() };
+
+            node_vals[0] = act_hidden((m_weights[0] * x_vec).addColumnwise(m_biases[0]));
+            node_vals_der[0] = act_hidden_der((m_weights[0] * x_vec).addColumnwise(m_biases[0]));
+            for (int k{ 1 }; k < node_vals.size() - 1; k++)
             {
-                Matrix x_vec{ x.getRow(shuffled_batch_idx[j]).transpose() };
-                Matrix y_vec{ y.getRow(shuffled_batch_idx[j]).transpose() };
+                node_vals[k] = act_hidden((m_weights[k] * node_vals[k - 1]).addColumnwise(m_biases[k]));
+                node_vals_der[k] = act_hidden_der((m_weights[k] * node_vals[k - 1]).addColumnwise(m_biases[k]));
+            }
+            node_vals[node_vals.size() - 1] = act_outer((m_weights[node_vals.size() - 1] * node_vals[node_vals.size() - 2]).addColumnwise(m_biases[node_vals.size() - 1]));
+            node_vals_der[node_vals.size() - 1] = act_outer_der((m_weights[node_vals.size() - 1] * node_vals[node_vals.size() - 2]).addColumnwise(m_biases[node_vals.size() - 1]));
 
-                node_vals[0] = act_hidden(m_weights[0] * x_vec + m_biases[0]);
-                node_vals_der[0] = act_hidden_der(m_weights[0] * x_vec + m_biases[0]);
+            Matrix y_hat{ node_vals[node_vals.size() - 1] };
+            Matrix y_delta{ y_hat - y_vec };
 
-                for (int k{ 1 }; k < node_vals.size() - 1; k++)
-                {
-                    node_vals[k] = act_hidden(m_weights[k] * node_vals[k - 1] + m_biases[k]);
-                    node_vals_der[k] = act_hidden_der(m_weights[k] * node_vals[k - 1] + m_biases[k]);
-                }
+            epoch_error += y_delta.dotProduct(y_delta);
 
-                node_vals[node_vals.size() - 1] = act_outer(m_weights[node_vals.size() - 1] * node_vals[node_vals.size() - 2] + m_biases[node_vals.size() - 1]);
-                node_vals_der[node_vals.size() - 1] = act_outer_der(m_weights[node_vals.size() - 1] * node_vals[node_vals.size() - 2] + m_biases[node_vals.size() - 1]);
-
-                Matrix y_hat = node_vals[node_vals.size() - 1];
-                Matrix y_delta = (y_hat - y_vec).transpose();
-
-                epoch_error += (y_delta * y_delta.transpose())[0];
-
-                for (int k{ 0 }; k < weights_grad.size(); k++)
-                {
-                    for (int l{ 0 }; l < weights_grad[k].nRow(); l++)
+            for (int k{ 0 }; k < weights_grad.size(); k++)
+            {
+                for (int l{ 0 }; l < weights_grad[k].nRow(); l++)
+                {                    
+                    Matrix bias_val{ node_vals_der[k].zeroButOneRow(l) };
+                    for (int m{ k + 1 }; m < weights_grad.size(); m++)
                     {
-                        Matrix bias_val{ node_vals_der[k].zeroButOne(l) };
-                        for (int m{ k + 1 }; m < weights_grad.size(); m++)
+                        bias_val = (node_vals_der[m]).hadamardProduct(m_weights[m] * bias_val);
+                    }
+                    biases_grad[k][l] = y_delta.dotProduct(bias_val);
+                                        
+                    if (k == 0)
+                    {
+                        for (int m{ 0 }; m < weights_grad[k].nCol(); m++)
                         {
-                            bias_val = (m_weights[m] * bias_val).hadamardProduct(node_vals_der[m]);
+                            weights_grad[k](l, m) = y_delta.dotProduct(bias_val.hadamardProduct(x_vec.getRow(m)));
                         }
-                        biases_grad[k][l] += (y_delta * bias_val)[0];
-
-                        if (k == 0)
+                    }
+                    else
+                    {
+                        for (int m{ 0 }; m < weights_grad[k].nCol(); m++)
                         {
-                            for (int m{ 0 }; m < weights_grad[k].nCol(); m++)
-                            {
-                                weights_grad[k](l, m) += (y_delta * (bias_val * x_vec[m]))[0];
-                            }
-                        }
-                        else
-                        {
-                            for (int m{ 0 }; m < weights_grad[k].nCol(); m++)
-                            {
-                                weights_grad[k](l, m) += (y_delta * (bias_val * node_vals[k - 1][m]))[0];
-                            }
+                            weights_grad[k](l, m) = y_delta.dotProduct(bias_val.hadamardProduct(node_vals[k - 1].getRow(m)));
                         }
                     }
                 }
-            }
-
+            }            
             //Calculate the number of data points used in this iteration
-            double denominator{ static_cast<double>(std::min((i + 1) * batch_size, n_rows) - i * batch_size) };
+            double denominator{ static_cast<double>(iter_idx.size()) };
 
             //Update the weights and biases
             for (int j{ 0 }; j < weights_grad.size(); j++)
@@ -230,13 +224,13 @@ void NeuralNet::train(const Matrix& y, const Matrix& x, const double learning_ra
 
 Matrix NeuralNet::predict(const Matrix& x) const
 {
-    Matrix result{ x };
+    Matrix result{ x.transpose() };
     for (size_t i{ 0 }; i < m_weights.size() - 1; i++)
     {
-        result = act_hidden(m_weights[i] * result + m_biases[i]);
+        result = act_hidden((m_weights[i] * result).addColumnwise(m_biases[i]));
     }
-    result = act_outer(m_weights[m_weights.size() - 1] * result + m_biases[m_weights.size() - 1]);
-    return result;
+    result = act_outer((m_weights[m_weights.size() - 1] * result).addColumnwise(m_biases[m_weights.size() - 1]));
+    return result.transpose();
 }
 
 void NeuralNet::save(const std::string filename) const

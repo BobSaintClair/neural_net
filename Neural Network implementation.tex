@@ -69,7 +69,7 @@ Neural network is a function $\hat{y}: \mathbb{R}^a \rightarrow \mathbb{R}^b$ wh
 
 \noindent 
 Loss function $\ell_2$ for a set $S = \{(\textbf{y}_n, \textbf{x}_n) : 1 \le n \le N\}$ :
-$$\ell_2 = \frac{1}{N}\sum_{\textbf{y},\textbf{x}\in S}(\hat{y}(\textbf{x})-\textbf{y})^T(\hat{y}(\textbf{x})-\textbf{y})$$
+$$\ell_2 = \frac{1}{N}\sum_{(\textbf{y},\textbf{x})\in S}(\hat{y}(\textbf{x})-\textbf{y})^T(\hat{y}(\textbf{x})-\textbf{y})$$
 
 \noindent 
 The aim is to minimize $\ell_2$ with respect to weights and biases. This is done by iteratively updating weights using gradient descent:
@@ -78,8 +78,8 @@ $$(\textbf{b}^m_{i})_{n+1} = (\textbf{b}^m_{i})_{n} - \alpha\frac{\partial \ell_
 
 \noindent
 where $\alpha$ is the learning rate.
-$$\frac{\partial \ell_2}{\partial\textbf{W}^m_{i,j}} = \frac{2}{N}\sum_{\textbf{y},\textbf{x}\in S}(\hat{y}(\textbf{x})-\textbf{y})^T\frac{\partial \hat{y}}{\partial \textbf{W}^m_{i,j}}(\textbf{x})$$
-$$\frac{\partial \ell_2}{\partial\textbf{b}^m_{i}} = \frac{2}{N}\sum_{\textbf{y},\textbf{x}\in S}(\hat{y}(\textbf{x})-\textbf{y})^T\frac{\partial \hat{y}}{\partial \textbf{b}^m_{i}}(\textbf{x})$$
+$$\frac{\partial \ell_2}{\partial\textbf{W}^m_{i,j}} = \frac{2}{N}\sum_{(\textbf{y},\textbf{x})\in S}(\hat{y}(\textbf{x})-\textbf{y})^T\frac{\partial \hat{y}}{\partial \textbf{W}^m_{i,j}}(\textbf{x})$$
+$$\frac{\partial \ell_2}{\partial\textbf{b}^m_{i}} = \frac{2}{N}\sum_{(\textbf{y},\textbf{x})\in S}(\hat{y}(\textbf{x})-\textbf{y})^T\frac{\partial \hat{y}}{\partial \textbf{b}^m_{i}}(\textbf{x})$$
 \noindent 
 Neural network output for an input $\textbf{x}$:
 $$\hat{y}(\textbf{x})=\phi^n(\textbf{W}^n\phi^{n-1}(..\phi^{0}(\textbf{W}^0\textbf{x}+\textbf{b}^0)..)+\textbf{b}^n)$$

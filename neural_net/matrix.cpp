@@ -2,6 +2,14 @@
 #include <algorithm>
 #include <numeric>
 
+std::vector<size_t> sliceVector(const std::vector<size_t>& vector, const size_t first_idx, const size_t second_idx)
+{
+    if (first_idx >= second_idx || vector.size() < second_idx)
+        throw std::invalid_argument("Index mismatch!");
+
+    return std::vector<size_t>(vector.begin() + first_idx, vector.begin() + second_idx);
+}
+
 Matrix::Matrix(const size_t nrow, const size_t ncol, const std::vector<double>& data) //constructor, called when an object is created, don't include default vars here
     : m_nrow{ nrow }, m_ncol{ ncol }, m_data{ data }
 {
@@ -20,9 +28,9 @@ void Matrix::print(std::ostream& stream) const
     size_t idx{ 0 };
     for (size_t i{ 0 }; i < std::min(5, static_cast<int>(m_nrow)); i++)
     {
-        for (size_t j{ 0 }; j < m_ncol; j++)
+        for (size_t j{ 0 }; j < std::min(5, static_cast<int>(m_ncol)); j++)
         {
-            stream << m_data[idx] << ' ';
+            stream << this->at(i, j) << ' ';
             idx++;
         }
         stream << '\n';
@@ -76,7 +84,7 @@ double Matrix::dotProduct(const Matrix& other_matrix) const
 
     for (size_t i{ 0 }; i < m_data.size(); i++)
     {
-        result += m_data[i] * m_data[i];
+        result += m_data[i] * other_matrix.m_data[i];
     }
 
     return result;
@@ -132,6 +140,24 @@ Matrix Matrix::getRow(const size_t row_idx) const
 
     size_t idx_start{ row_idx * m_ncol };
     return Matrix{ 1, m_ncol, std::vector<double>(m_data.begin() + idx_start, m_data.begin() + idx_start + m_ncol) };
+}
+
+Matrix Matrix::getRows(const std::vector<size_t> row_idx) const
+{
+    if (std::max_element(row_idx.begin(), row_idx.end())[0] >= m_nrow)
+        throw std::invalid_argument("Index exceeds dimensions!");
+
+    std::vector<double> result{};
+    
+    for (size_t j : row_idx)
+    {
+        for (size_t i{ 0 }; i < m_ncol; i++)
+        {
+            result.push_back(m_data[j * m_ncol + i]);
+        }
+    }
+
+    return Matrix{ row_idx.size(), m_ncol, result };
 }
 
 Matrix Matrix::getCol(const size_t col_idx) const
@@ -232,6 +258,24 @@ Matrix Matrix::hadamardProduct(const Matrix& other_matrix) const
     return result;
 }
 
+Matrix Matrix::hadamardProductColumnwise(const Matrix& other_matrix) const
+{
+    if (m_nrow != other_matrix.m_nrow || other_matrix.m_ncol != 1)
+        throw std::invalid_argument("Matrices have different dimensions!");
+
+    Matrix result{ m_nrow, m_ncol, std::vector<double>(m_data.size()) };
+
+    for (size_t i{ 0 }; i < m_nrow; i++)
+    {
+        for (size_t j{ 0 }; j < m_ncol; j++)
+        {
+            result.m_data[i * m_ncol + j] = m_data[i * m_ncol + j] * other_matrix.m_data[i];
+        }
+    }
+
+    return result;
+}
+
 Matrix Matrix::zeroButOne(const size_t idx) const
 {
     Matrix result{ m_nrow, m_ncol, std::vector<double>(m_data.size(), 0.0) };
@@ -248,6 +292,21 @@ Matrix Matrix::zeroButOne(const size_t row_idx, const size_t col_idx) const
     result[row_idx * m_ncol + col_idx] =  m_data.at(row_idx * m_ncol + col_idx);
     return result;
 }
+
+Matrix Matrix::zeroButOneRow(const size_t row_idx) const
+{
+    if (row_idx >= m_nrow)
+        throw std::invalid_argument("Index exceeds dimensions!");
+
+    std::vector<double> result(m_data.size(), 0.0);
+    size_t idx_start{ row_idx * m_ncol };
+
+    std::vector<double> src{ std::vector<double>(m_data.begin() + idx_start, m_data.begin() + idx_start + m_ncol) };
+    std::copy(src.begin(), src.end(), result.begin() + idx_start);
+
+    return Matrix{ m_nrow, m_ncol, result };
+}
+
 
 void Matrix::operator+=(const Matrix& other_matrix)
 {
@@ -319,6 +378,32 @@ Matrix Matrix::operator*(const Matrix& other_matrix) const
             }
 
             result.m_data[i * other_matrix.m_ncol + j] = element_value;
+        }
+    }
+
+    return result;
+}
+/*
+Matrix Matrix::multiplyEachColumnByValue(const Matrix& other_matrix) const
+{
+    if (m_ncol != other_matrix.m_ncol)
+        throw std::invalid_argument("Matrices have different dimensions!");
+
+
+}
+*/
+Matrix Matrix::addColumnwise(const Matrix& other_matrix) const
+{
+    if (m_nrow != other_matrix.m_nrow || other_matrix.m_ncol != 1)
+        throw std::invalid_argument("Matrices have different dimensions!");
+
+    Matrix result{ *this };
+
+    for (size_t i{ 0 }; i < m_nrow; i++)
+    {
+        for (size_t j{ 0 }; j < m_ncol; j++)
+        {
+            result(i, j) += other_matrix[i];
         }
     }
 
