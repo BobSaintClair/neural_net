@@ -17,8 +17,9 @@ private:
     Matrix act_outer_der(const Matrix& x) const;
 
 public:
-    NeuralNet(const std::vector<size_t> layers, const ActivationFunction hidden_af = ActivationFunction::relu, const ActivationFunction outer_af = ActivationFunction::identity);
-    
+    NeuralNet(const std::vector<size_t> layers, const ActivationFunction hidden_af, const ActivationFunction outer_af);
+    NeuralNet(const std::string filename);
+
     void train(const Matrix& y, const Matrix& x, const double learning_rate = 0.01, const size_t batch_size = 10000, const size_t epochs = 10); //fix it so y and x are const
     Matrix predict(const Matrix& x) const;
     void save(const std::string filename) const;

@@ -114,6 +114,11 @@ NeuralNet::NeuralNet(const std::vector<size_t> layers, const ActivationFunction 
     }
 }
 
+NeuralNet::NeuralNet(const std::string filename)
+{
+    this->load(filename);
+}
+
 void NeuralNet::train(const Matrix& y, const Matrix& x, const double learning_rate, const size_t batch_size, const size_t epochs)
 {
     //Ensure the data parameters match the network specifications
@@ -238,6 +243,11 @@ void NeuralNet::save(const std::string filename) const
     //Create an output stream class to operate on files
     std::ofstream outfile(filename);
 
+    //Save network activation functions
+    outfile << static_cast<size_t>(m_hidden_af) << ',';
+    outfile << static_cast<size_t>(m_outer_af) << ',';
+    outfile << '\n';
+
     //Save network dimensions
     for (size_t i{ 0 }; i < m_layers.size(); i++)
     {
@@ -282,6 +292,16 @@ void NeuralNet::load(const std::string filename)
         std::string line{ "" };
         double data{ 0.0 };
         size_t data_size_t{ 0 };
+
+        std::getline(infile, line);
+        std::istringstream iss_act{ line };
+        iss_act >> data_size_t;
+        m_hidden_af = static_cast<ActivationFunction>(data_size_t);
+        iss_act.ignore();
+        iss_act >> data_size_t;
+        m_outer_af = static_cast<ActivationFunction>(data_size_t);
+        iss_act.str(std::string());
+        iss_act.clear();
 
         std::getline(infile, line);
         std::istringstream iss_layers{ line };

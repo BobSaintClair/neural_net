@@ -14,7 +14,7 @@ int main()
 	std::vector<size_t> network_dimensions{ x_train.nCol(), 20, 10, 5, y_train.nCol() };
 
 	NeuralNet nn{ network_dimensions, ActivationFunction::tanh, ActivationFunction::identity };	
-	nn.train(y_train, x_train, 0.02, 1000, 40);
+	nn.train(y_train, x_train, 0.02, 1000, 20);
 	
 	Matrix yhat_test{ nn.predict(x_test) };
 
