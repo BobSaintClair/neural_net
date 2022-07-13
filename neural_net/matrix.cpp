@@ -307,6 +307,41 @@ Matrix Matrix::zeroButOneRow(const size_t row_idx) const
     return Matrix{ m_nrow, m_ncol, result };
 }
 
+std::vector<double> Matrix::columnwiseMean() const
+{
+    if (m_ncol == 0)
+        throw std::invalid_argument("Zero columns!");
+
+    std::vector<double> result{};
+    for (size_t i{ 0 }; i < m_ncol; i++)
+    {
+        std::vector<double> cur_col{ this->getCol(i).m_data };
+        double average{ std::accumulate(cur_col.begin(), cur_col.end(), 0.0) / static_cast<double>(cur_col.size()) };
+        result.push_back(average);
+    }
+    return result;
+}
+
+std::vector<double> Matrix::columnwiseStdDev() const
+{
+    if (m_ncol == 0)
+        throw std::invalid_argument("Zero columns!");
+
+    std::vector<double> result{};
+    for (size_t i{ 0 }; i < m_ncol; i++)
+    {
+        std::vector<double> cur_col{ this->getCol(i).m_data };
+        double average{ std::accumulate(cur_col.begin(), cur_col.end(), 0.0) / static_cast<double>(cur_col.size()) };
+        double sum{ 0.0 };
+        for (double& element : cur_col)
+        {
+            element -= average;
+            sum += element * element;
+        }
+        result.push_back(sqrt(sum / cur_col.size()));
+    }
+    return result;
+}
 
 void Matrix::operator+=(const Matrix& other_matrix)
 {
@@ -338,10 +373,40 @@ void Matrix::operator*=(const double multiplier)
     }
 }
 
+void Matrix::operator+=(const double add_me)
+{
+    for (size_t i{ 0 }; i < m_data.size(); i++)
+    {
+        m_data[i] += add_me;
+    }
+}
+
+void Matrix::operator-=(const double subtract_me)
+{
+    for (size_t i{ 0 }; i < m_data.size(); i++)
+    {
+        m_data[i] -= subtract_me;
+    }
+}
+
+Matrix Matrix::operator+(const double add_me) const
+{
+    Matrix result{ *this };
+    result += add_me;
+    return result;
+}
+
 Matrix Matrix::operator+(const Matrix& other_matrix) const
 {
     Matrix result{ *this };
     result += other_matrix;
+    return result;
+}
+
+Matrix Matrix::operator-(const double subtract_me) const
+{
+    Matrix result{ *this };
+    result -= subtract_me;
     return result;
 }
 
@@ -383,15 +448,7 @@ Matrix Matrix::operator*(const Matrix& other_matrix) const
 
     return result;
 }
-/*
-Matrix Matrix::multiplyEachColumnByValue(const Matrix& other_matrix) const
-{
-    if (m_ncol != other_matrix.m_ncol)
-        throw std::invalid_argument("Matrices have different dimensions!");
 
-
-}
-*/
 Matrix Matrix::addColumnwise(const Matrix& other_matrix) const
 {
     if (m_nrow != other_matrix.m_nrow || other_matrix.m_ncol != 1)

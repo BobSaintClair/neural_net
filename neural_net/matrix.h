@@ -41,15 +41,20 @@ public:
     Matrix zeroButOne(const size_t idx) const;
     Matrix zeroButOne(const size_t row_idx, const size_t col_idx) const;
     Matrix zeroButOneRow(const size_t row_idx) const;
+    std::vector<double> columnwiseMean() const;
+    std::vector<double> columnwiseStdDev() const;
 
     void operator+=(const Matrix& other_matrix);
     void operator-=(const Matrix& other_matrix);
     void operator*=(const double multiplier);
+    void operator+=(const double add_me);
+    void operator-=(const double subtract_me);
+    Matrix operator+(const double add_me) const;
     Matrix operator+(const Matrix& other_matrix) const;
+    Matrix operator-(const double subtract_me) const;
     Matrix operator-(const Matrix& other_matrix) const;
     Matrix operator*(const double multiplier) const;
     Matrix operator*(const Matrix& other_matrix) const;
-    //Matrix multiplyEachColumnByValue(const Matrix& other_matrix) const;
     Matrix addColumnwise(const Matrix& other_matrix) const;
     double& operator[](const size_t idx);
     const double& operator[](const size_t idx) const;
